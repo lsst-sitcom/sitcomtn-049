@@ -81,9 +81,11 @@ There are three main sources of throughput loss:
 1. Calibration System Optics
 
 - Light source mask: 0.3 throughput
+
 (estimate was 0.2 but measured to be closer to 0.3)
 
 - Reflector and calibration screen reflectance: 0.01/100 @ 600nm
+
 Needs filter dependence to be removed
 
 2. Filter Transmission
