@@ -17,7 +17,7 @@ Provides a description of the Exposure Time Calculator for the Flat Field Calibr
 
 System Description
 ==================
-A light projector, either a tunable laser or white light source (e.g. LED) will be used to illuminate the white calibration screen to provide the camera with a flat field calirbation source. The light source will be placed in teh center of the calibration screen, will be reflected off of a custom made optic that delivers light back to the calibration screen. 
+A light projector, either a tunable laser or white light source (e.g. LED) will be used to illuminate the white calibration screen to provide the camera with a flat field calibration source. The light source will be placed in the center of the calibration screen and will reflect off of a custom made optic that delivers light back to the calibration screen mounted to the Rubin Obs. dome.
 
 Below are assumptions about the system made in this exposure time calculator:
 
@@ -32,7 +32,9 @@ Requirements
 ============
 
 Key requirements can be found in `LSE-60 <https://docushare.lsst.org/docushare/dsweb/Get/LSE-60>`__.
-The most important for the White Light Source are that the illumination from teh calibration screen have a spatial uniformity of 10%. Also, according to TLS-REQ-0096, the intensity of the white light exitance from the screen should produce a spectral radiance of 3 milli-Jansky's per arcsec^2, as measured on the detector.
+The most important for the White Light Source are that the illumination from the calibration screen have a spatial uniformity of 10%. 
+
+Additionally, according to TLS-REQ-0096, the intensity of the white light (e.g. LED) exitance from the screen should produce a spectral radiance of 3 milli-Jansky's per arcsec^2, as measured on the detector.
 
 This can be converted to spectral exitance (M) in W/m2/Hz:
 
@@ -70,25 +72,41 @@ If we assume that we want a SNR = 1000,
    |  5 | y4       |           0.075 |                   10607.7  |       94.2711 |
    +----+----------+-----------------+----------------------------+---------------+
 
+For the tunable laser, besides the requirement on uniformity, TLS-REQ-0098 states that the FWHM of the luminous exitance from the calibration screen be no wider that 1 nm and be adjustable by 1 nm step size with an accuracy of 1 nm. For the purposes of this document, we will assume that requirement is met. We will assume a desired median SNR of 100 for all bands using the tunable laser for flat field calibration.
 
 
 Exposure Time Calculator
 ========================
 Throughput
 ----------
-There are three main sources of throughput loss:
+There are several sources of throughput loss:
 
 1. Calibration System Optics
 
 - Light source mask: 0.3 throughput
 
-(estimate was 0.2 but measured to be closer to 0.3)
+(Note: for LED only; estimate was 0.2 but measured to be closer to 0.3)
+
+- Fiber Coupling: 0.5 throughput
+
+(For tunable laser only)
 
 - Reflector and calibration screen reflectance: 0.01/100 @ 600nm
 
 Needs filter dependence to be removed
 
-2. Filter Transmission
+2. Fiber Attenuation
+
+Data from http://www.ceramoptec.de/ in units of dB/km. We are assuming a fiber length (distance) of 15m.
+
+.. math:: \textrm{T} = 10^{\frac{-db/km}{distance(km)/10}}
+
+.. figure:: /_static/fiber_att.png
+   :name: fiber_att
+   :target: ../_images/fiber_att.png
+   :alt: fiber_att
+
+3. Filter Transmission
 
 - Using ideal filter curves from `Docushare Collection-1777: Baseline Design Throughput <https://docushare.lsst.org/docushare/dsweb/View/Collection-1777>`__
 
@@ -99,7 +117,7 @@ Needs filter dependence to be removed
 
    Ideal filter throughput.
 
-3. Detector Quantum Efficiency
+4. Detector Quantum Efficiency
 
 .. figure:: /_static/det_tput.png
    :name: detector_throughput
@@ -126,12 +144,19 @@ We expect to use Thorlabs LEDs and the Ekspla Tunable Laser for flat field calib
 
    Energetiq 99x FC flux with fiber multiplier of 2.25
 
-LASER IMAGE TBD
+
+
+.. figure:: /_static/nt242_output.png
+   :name: nt242_output
+   :target: ../_images/nt242_output.png
+   :alt: nt242_output
+
+   Ekspla NT242 Output
 
 
 Calculator
 ----------
-Details can be found in  ``LED_Throughput_Calc.ipynb`` found in the ``_static/`` folder at ``https://github.com/lsst-sitcom/sitcomtn-049``.
+Details can be found in  ``LED_Throughput_Calc.ipynb`` and ``Laser_Throughput_Calc.ipynb`` found in the ``_static/`` folder at ``https://github.com/lsst-sitcom/sitcomtn-049``.
 
 1. Start with the flux profile :math:`f(\lambda)` from the light source in W/nm
 2. Calculate photons/sec from light source:
@@ -139,11 +164,10 @@ Details can be found in  ``LED_Throughput_Calc.ipynb`` found in the ``_static/``
 .. math:: ph/s/nm = f(\lambda) * \frac{\lambda (m)}{h\, c}
 
 3. Multiply by throughput of calibration system optics
-4. Multiply by filter efficiency and detector curves
+4. Multiply by fiber attenuation, filter efficiency and detector curves
 5. Integrate all photons within a given bandpass
 6. Divide by total number of pixels
 7. Calculate exposure time to get SNR=1000
-
 
 
 Results
@@ -206,6 +230,12 @@ Results
    |  5 | energetiq-99xfc@959.5nm | y4       |                222.625 |        2880.52 |       4491.87 |           347.159  | False  |
    +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
 
+.. figure:: /_static/laser_snr_plots.png
+   :name: laser_snr_plots
+   :target: ../_images/laser_snr_plots.png
+   :alt: laser_snr_plots
+
+   Ekspla Tunable Laser SNR plots 
 
 
 
