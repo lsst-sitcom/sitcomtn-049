@@ -2,13 +2,6 @@
 
 .. sectnum::
 
-.. Metadata such as the title, authors, and description are set in metadata.yaml
-
-.. TODO: Delete the note below before merging new content to the main branch.
-
-.. note::
-
-   **This technote is a work-in-progress. It does not yet include the calculations for the tunable laser.**
 
 Abstract
 ========
@@ -19,22 +12,21 @@ System Description
 ==================
 A light projector, either a tunable laser or white light source (e.g. LED) will be used to illuminate the white calibration screen to provide the camera with a flat field calibration source. The light source will be placed in the center of the calibration screen and will reflect off of a custom made optic that delivers light back to the calibration screen mounted to the Rubin Obs. dome.
 
-Below are assumptions about the system made in this exposure time calculator:
+Of the following diagram, we will cover the LED and Laser+Fiber lightsource, Calibration System Optics and LSST boxes. Other elements of the calibration ETC can be found in the `CBP Calibration ETC Tech Note <https://sitcomtn-070.lsst.io>`__.
 
-- Outer diameter of calibration screen: 9.27 m
-- Diameter of obscuration of calibration screen (i.e. inner diameter): 4.18 m
-- Plate Scale of camera: 0.2 arcsec/pixel
-- Total Number of Pixels: :math:`3.2\textrm{x}10^{9}` pixels
+.. figure:: /_static/etc_overview.png
+   :name: etc_overview
+   :target: ../_images/etc_overview.png
+   :alt: etc_overview
 
-Throughput curves for the 6 filters used (u, g, r, i, z, y) are taken from `Docushare Collection-1777: Baseline Design Throughput <https://docushare.lsst.org/docushare/dsweb/View/Collection-1777>`__
+   ETC Overview
 
 Requirements
 ============
 
 Key requirements can be found in `LSE-60 <https://docushare.lsst.org/docushare/dsweb/Get/LSE-60>`__.
-The most important for the White Light Source are that the illumination from the calibration screen have a spatial uniformity of 10%. 
 
-Additionally, according to TLS-REQ-0096, the intensity of the white light (e.g. LED) exitance from the screen should produce a spectral radiance of 3 milli-Jansky's per arcsec^2, as measured on the detector.
+Additionally, according to TLS-REQ-0094(0096), the intensity of the white light (e.g. LED) exitance from the screen should produce a spectral radiance of 3 milli-Jansky's per arcsec^2, as measured on the detector, with a minimum of a 5 nm bandpass.
 
 This can be converted to spectral exitance (M) in W/m2/Hz:
 
@@ -54,188 +46,368 @@ If we assume that we want a SNR = 1000,
 .. math:: \textrm{exptime}= \frac{SNR^{2}}{\textrm{photon rate}}
 
 
-.. table:: With a white light source centered at 500nm, the following photon rates would be required for each filter.
+.. table:: With a white light source centered in the center of the filter, the following photon rates would be required for each filter.
 
-   +----+----------+-----------------+----------------------------+---------------+
-   |    | Filter   |   Bandpass (um) |   Photon Rate (ph/pix/sec) |   ExpTime (s) |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  0 | u        |           0.071 |                    3762.47 |      265.783  |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  1 | g        |           0.147 |                   10368.5  |       96.4463 |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  2 | r        |           0.139 |                   12734.2  |       78.5288 |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  3 | i        |           0.127 |                   14124.7  |       70.7981 |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  4 | z        |           0.103 |                   13201.5  |       75.7492 |
-   +----+----------+-----------------+----------------------------+---------------+
-   |  5 | y4       |           0.075 |                   10607.7  |       94.2711 |
-   +----+----------+-----------------+----------------------------+---------------+
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |    | Filter   |   Bandpass (um) |   Photon Rate (ph/pix/sec) |   Center Wavelength (nm) |   ExpTime (s) |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  0 | u        |           0.071 |                    7278.04 |                    359.5 |      137.4    |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  1 | g        |           0.147 |                   11321.2  |                    478.5 |       88.3302 |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  2 | r        |           0.139 |                    8241.93 |                    621.5 |      121.331  |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  3 | i        |           0.127 |                    6202.97 |                    754.5 |      161.213  |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  4 | z        |           0.103 |                    4365.39 |                    869.5 |      229.075  |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
+   |  5 | y4       |           0.075 |                    2880.52 |                    959.5 |      347.159  |
+   +----+----------+-----------------+----------------------------+--------------------------+---------------+
 
-For the tunable laser, besides the requirement on uniformity, TLS-REQ-0098 states that the FWHM of the luminous exitance from the calibration screen be no wider that 1 nm and be adjustable by 1 nm step size with an accuracy of 1 nm. For the purposes of this document, we will assume that requirement is met. We will assume a desired median SNR of 100 for all bands using the tunable laser for flat field calibration.
+For the tunable laser, besides the requirement on uniformity, TLS-REQ-0098 states that the FWHM of the luminous exitance from the calibration screen be no wider that 1 nm and be adjustable by 1 nm step size with an accuracy of 1 nm. 
+For the purposes of this document, we will assume that requirement is met. 
+It is also a requirement that scanning of a filter using the narrow-band light source (i.e. tunable laser) and calibration screen when stepping in 1 nm increments shall not exceed 4 hours. 
 
+We will assume a desired median SNR of 100 for all bands using the tunable laser for flat field calibration.
 
-Exposure Time Calculator
-========================
-Throughput
-----------
-There are several sources of throughput loss:
+Light Source
+============
 
-1. Calibration System Optics
+White Light Source
+------------------
 
-- Light source mask: 0.3 throughput
+Parameters:
+ - ``LEDS``: The Thorlab LEDs we expect to use for each band  
+ - ``dichroic``: The dichroic we expect to use for each band.
 
-(Note: for LED only; estimate was 0.2 but measured to be closer to 0.3)
+With our white light system, we will have a unique projector for each band. 
+For some bands we will used two LEDs combined using a dichroic. 
+For the u and y band, we will use a single LED, but to save space they will be used with a dichroic. Only one LED will be used at a time in this case. 
+More information can be found on `Confluence <https://confluence.lsstcorp.org/pages/viewpage.action?spaceKey=LTS&title=Mulit-LED+Projector>`__. 
 
-- Fiber Coupling: 0.5 throughput
+.. table:: The following LEDs and dichroics will be used for each filter
 
-(For tunable laser only)
+   +----+----------+-----------------+----------------------+
+   |    | Filter   |   LED(s)        | Dichroic             | 
+   +----+----------+-----------------+----------------------+
+   |  0 | u        |  M385L3         |  DMLP735B (Thorlabs) |
+   +----+----------+-----------------+----------------------+
+   |  1 | g        | M455L4, M505L4  |  DMLP490 (Thorlabs)  |    
+   +----+----------+-----------------+----------------------+
+   |  2 | r        | M565L3, M660L4  |   DMLP605 (Thorlabs) |  
+   +----+----------+-----------------+----------------------+
+   |  3 | i        | M730L5, M780LP1 |  69904 (EO)          | 
+   +----+----------+-----------------+----------------------+
+   |  4 | z        | M850LP1, M940L3 |  DMLP900 (Thorlabs)  |  
+   +----+----------+-----------------+----------------------+
+   |  5 | y4       | M970L4          |  DMLP735B (Thorlabs) |
+   +----+----------+-----------------+----------------------+
 
-- Reflector and calibration screen reflectance: 0.01/100 @ 600nm
+For each of these LED systems, the output of the LED (as published by Thorlabs) is then multiplied by the transmission and reflection curves of the dichroic. 
+The final irradiance from the light source is the addition of the output from each LED in the projector.
 
-Needs filter dependence to be removed
+.. figure:: /_static/whitelight_source_flux.png
+   :name: whitelight_source_flux
+   :target: ../_images/whitelight_source_flux.png
+   :alt: whitelight_source_flux
 
-2. Fiber Attenuation
+   Output of the white light LED projector for each filter.
 
-Data from http://www.ceramoptec.de/ in units of dB/km. We are assuming a fiber length (distance) of 15m.
+Tunable Laser
+-------------
+Parameters:
+ - ``laser_file``: filename that contains the Watts/nm from the laser 
+ - ``decrease_expected``: This is the percentage decrease from the values in the ``laser_file``. This should be zero if the ``laser_file`` contains measured levels.  
 
-.. math:: \textrm{T} = 10^{\frac{-db/km}{distance(km)/10}}
+We are using the Ekspla NT242 currently. It is possible that we may have a backup laser with a different output profile. Currently, we are using :file:`PGD151_NT242.txt`, which is the expected levels from the distributor. We will want to update this with measured values.
 
-.. figure:: /_static/fiber_att.png
-   :name: fiber_att
-   :target: ../_images/fiber_att.png
-   :alt: fiber_att
+.. figure:: /_static/pgd151_nt242_output.png
+   :name: pgd151_nt242_output
+   :target: ../_images/pgd151_nt242_output.png
+   :alt: pgd151_nt242_output
 
-3. Filter Transmission
+   Output of NT242 laser
 
-- Using ideal filter curves from `Docushare Collection-1777: Baseline Design Throughput <https://docushare.lsst.org/docushare/dsweb/View/Collection-1777>`__
+Fiber Attentuation
+------------------
+Parameters:
+ - ``fiber_length``: Length of fiber from the laser to either the CBP or the flatfield projector. 
+ - ``fiber_type``: This is the type of ceramoptic fiber we expect to use. 
+ - ``fiber coupling``: This is the throughput decrease based on the coupling between the fiber and the laser. 
+ - ``use_fiber``: Whether or not a fiber will be used [True]
+
+Based loosely on LTS-664, I estimate that the fiber will run ~15m from the laser to the projector. 
+
+Likely, will get this fiber from ceramoptic: https://www.ceramoptec.com/products/fibers/optran-uv-/-wf.html.
+The attenuation (dB/km) for several kinds of fibers was sent to me by Ceramoptic (email) and ``WFNS`` was recommended.
+
+.. figure:: /_static/ceramoptic_attenuation.png 
+   :name: ceramoptic_attenuation
+   :target: ../_images/ceramoptic_attenuation.png 
+   :alt: ceramoptic_attenuation 
+
+   Attenutation of ceramoptic UV/WS fibers.
+
+Tranmission of the fiber is then calculated:
+
+.. math:: \textrm{T} = 10^{\frac{-dB/km}{distance(km)/10}}
+
+Based on initial measurements with a NA=0.22 fiber on April 11, 2023, the ``fiber_coupling`` is estimated to be 0.8 across all wavelengths.
+
+Calibration System Optics
+=========================
+
+Projector Optics
+----------------
+Parameters:
+ - ``system_efficiency``: How much of the light that goes into the projector makes it to the camera. This can be determined in Zemax or by combinging the efficiencies of the projector and camera optics.
+ - ``projector_design``: The optical elements that make up the projector, each having a unique coating.
+
+The projector design is different for the white light system and the laser system. Defining the projector design is done in the ETC code by feeding a list of coatings used on different optical elements in the projector.
+
+They system efficiency of the whole optical system is dominated by two main componentss: the central obscuration and the acceptance cone of light into the telescope. This is calculated to be 0.0113% for the LED projector and X% for the Laser Projector as calculated in Zemax for 630nm. We will assume a similar value for all wavelengths.
+
+LED Projector
+^^^^^^^^^^^^^
+Design used currently uses a collimating lens followed by two converging lenses and then a field lens. 
+The design can be found on `Confluence <https://confluence.lsstcorp.org/display/LTS/White+Light+Source+Optical+Models>`__.
+It requires one mirror to redirect the beam.
+Approximately 30% of the light leaving the LED will make it into the projector. This is difficult to measure as the LED has a output angle of 80deg. We make this estimate based on collimated LED systems available from Thorlabs.
+
+The collimating lens used is the 1 inch Aspheric Condensor Thorlabs ACL2520U. A separate collimating lens will be used for each LED and then will be combined by the dichroic. Depending on which filter, we will use a different AR coating for this optic.
+
+.. figure:: /_static/collimator_ar_coatings.png
+   :name: collimator_ar_coatings
+   :target: ../_images/collimator_ar_coatings.png
+   :alt: collimator_ar_coatings
+
+   Transmission of AR coatings on LED collimating lens
+
+The light will then travel through three lenses. These lenses are made of N-BK7 and must remain uncoated to work for all wavelengths. Another options is use the **AB** AR coating, but we are unlikely to do so.
+
+.. figure:: /_static/converging_lens_coatings.png
+   :name: converging_lens_coatings
+   :target: ../_images/converging_lens_coatings.png
+   :alt: converging_lens_coatings
+
+   Transmission of coatings for converging lens.
+
+We will also need one mirrors to redirect the light, using either Aluminum or Silver coatings. We will have to use the same mirror for all LEDs. We will likely use Aluminum (F01).
+
+.. figure:: /_static/mirror_coating.png
+   :name: mirror_coating
+   :target: ../_images/mirror_coating.png
+   :alt: mirror_coating
+
+   Reflectivity of Thorlabs mirror coatings
+
+Laser Projector
+^^^^^^^^^^^^^^^
+
+For the laser projector, we will use four uncoated lenses. Two will be the Thorlabs LA4158, which are f = 250.9 mm UV Fused Silica, Uncoated lesnes. Two will be the Thorlabs LA4122 f = 40mm, N-BK7 uncoated lenses.
+We expect the ``projector_mask_efficiency`` to be 87.5%, based on measurements made in the lab with a fiber with NA 0.21.
+
+Reflector
+---------
+Parameters
+ - ``reflector_reflectance``: The reflective properties of the reflector
+
+Both the LED and laser system use the "Reflector" to deliver light to the calibration screen.
+The diameter of the reflector is 741.3mm, with a central obscuration of 326.8mm diameter. 
+The reflector is a custom made aspherical optic made of bare aluminum. It is currently uncoated. The Reflector should be irradiated with a f/4 light beam from the projector. 
+
+.. figure:: /_static/alum_reflectance.png
+   :name: alum_reflectance
+   :target: ../_images/alum_reflectance.png
+   :alt: alum_reflectance
+
+   Typical reflective properties of aluminum
+
+Our reflector was measured with a Minolta reflectivity sensor and the following was measured. Unfrotunately, we only have data from 44-700nm and it's clear that aluminum will have an increase reflectivy past 850nm. We scaled the expected reflection values for bare aluminum to our measurements made with the Minolta for this final curve:
+
+.. figure:: /_static/reflector_reflectance.png
+   :name: reflector_reflectance
+   :target: ../_images/reflector_reflectance.png
+   :alt: reflector_reflectance
+
+   Measured reflectance of the Reflector
+
+Calibration Screen
+------------------
+Parameters
+ - ``screen_reflectance``: The reflectivity of the labsphere coating on the calibration screen.
+
+The screen is 9.27m in diameter with a 4.18 m obscuration and is coated with Pressed Polytetrafluoroethylene Powder by Labsphere. 
+
+The screen reflectance values were taken from measurements made by LabSphere when then delivered (`Collection-10467 <https://docushare.lsst.org/docushare/dsweb/View/Collection-10467>`__). There is quite a difference between the results from different panels. I took two reports randomly, one for the outer ring [109153-1-17] and one for the inner ring [109153-1-22], and calculated their mean reflectance.
+
+In the future, we can possibly determine the specific reflectivity based on the location on the screen, but at this point we don't know where the individual panels will be mounted. Therefore, I am using this mean curve to represent the whole screen.
+
+.. figure:: /_static/screen_reflectance.png
+   :name: screen_reflectance
+   :target: ../_images/screen_reflectance.png
+   :alt: screen_reflectance
+
+   Reflectance of screen
+
+The light reflected from the screen will be lambertian. Only a small angle of this light will be accepted into the telescope. According to our zemax model (`Document-40906 <https://docushare.lsst.org/docushare/dsweb/View/Collection-11886>`__), the total system throughput is approximately 0.00025. This value should include the fraction of light accepted into the camera, but it also includes the fraction of light lost by the reflector and transmission losses due to optics and mirrors. As a conservative estimate, we define the acceptance fraction to be 0.0005. This will be refined as our zemax model is updated, and will also be calculated as a function of wavelength.
+
+Telescope and Camera Throughput
+===============================
+Parameters:
+ - ``total_number_of_pixels``: 3.2e9
+ - ``pixel_size``: 10e-6 m
+ - ``f_lsst``: focal length of the LSST telescope (m) [10.3]
+
+Mirror Reflectance
+------------------
+Parameters:
+ - ``m1``, ``m2``, ``m3``: Reflectance for a mirror coating; options:[``A'Unprotected-Al``,``Protected-Al``,``Protected-Ag``]
+
+There are three mirrors [m1, m2, m3] that will be coated with either Al or Ag. The full throughput will be the combination of the three mirrors, whether all have the same coating or different. The curves we are using come from a document sent directly from Tomislav Vicuna, called `Final procAg-ProcAl_bareAl.xlsx`. 
+
+Currently, the understanding is that all three mirrors will be coated in Protected Silver.
+
+.. figure:: /_static/mirror_coating_reflectance.png
+   :name: mirror_coating_reflectance
+   :target: ../_images/mirror_coating_reflectance.png
+   :alt: mirror_coating_reflectance
+
+   Reflectance of telescope mirror coatings
+
+Filter & Corrector Throughput
+-----------------------------
+Using the filter and lens throughput from the `Baseline Design Throughput <https://docushare.lsst.org/docushare/dsweb/View/Collection-1777>`__ on Docushare.
 
 .. figure:: /_static/ideal_filters.png
-   :name: filter_throughput
+   :name: ideal_filters
    :target: ../_images/ideal_filters.png
    :alt: ideal_filters
 
-   Ideal filter throughput.
-
-4. Detector Quantum Efficiency
-
-.. figure:: /_static/det_tput.png
-   :name: detector_throughput
-   :target: ../_images/det_tput.png
-   :alt: det_tput
-
-   Detector Quantum Efficiency
-
-Light Output
-------------
-We expect to use Thorlabs LEDs and the Ekspla Tunable Laser for flat field calibration. The Energetiq 99x FC data is shown for comparison.
-
-.. figure:: /_static/thorlabs_leds.png
-   :name: thorlabs_leds
-   :target: ../_images/thorlabs_leds.png
-   :alt: thorlabs_leds
-
-   Thorlab LED Flux
-
-.. figure:: /_static/energetiq.png
-   :name: energetiq_99xFC
-   :target: ../_images/energetiq.png
-   :alt: energetiq
-
-   Energetiq 99x FC flux with fiber multiplier of 2.25
+   Ideal filter throughput
 
 
+.. figure:: /_static/collimator_trans.png
+   :name: collimator_trans
+   :target: ../_images/collimator_trans.png
+   :alt: collimator_trans
 
-.. figure:: /_static/nt242_output.png
-   :name: nt242_output
-   :target: ../_images/nt242_output.png
-   :alt: nt242_output
-
-   Ekspla NT242 Output
-
-
-Calculator
-----------
-Details can be found in  ``LED_Throughput_Calc.ipynb`` and ``Laser_Throughput_Calc.ipynb`` found in the ``_static/`` folder at ``https://github.com/lsst-sitcom/sitcomtn-049``.
-
-1. Start with the flux profile :math:`f(\lambda)` from the light source in W/nm
-2. Calculate photons/sec from light source:
-
-.. math:: ph/s/nm = f(\lambda) * \frac{\lambda (m)}{h\, c}
-
-3. Multiply by throughput of calibration system optics
-4. Multiply by fiber attenuation, filter efficiency and detector curves
-5. Integrate all photons within a given bandpass
-6. Divide by total number of pixels
-7. Calculate exposure time to get SNR=1000
+   Total transmission of three lenses that make up the collimator.
 
 
-Results
-=======
-.. table:: Thorlabs LEDs
+Detector Efficiency
+-------------------
+Parameters:
+ - ``detector_file``: File with QE for the detector 
+ - Plate Scale of camera: 0.2 arcsec/pixel
 
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |    | LED        | Filter   |   Bandpass (um) |   Ph Rate (ph/pix/sec) |   Req. Ph Rate |   Exptime (s) |   Req. Exptime (s) | Pass   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  0 | M365L2-C1  | u        |           0.071 |                1243.92 |        7060.36 |      803.909  |           141.636  | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  1 | M365LP1-C1 | u        |           0.071 |                4743.25 |        7060.36 |      210.826  |           141.636  | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  2 | M385L2-C1  | u        |           0.071 |                1400.27 |        6345.87 |      714.148  |           157.583  | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  3 | M385LP1-C1 | u        |           0.071 |                6485.86 |        6345.87 |      154.182  |           157.583  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  4 | M455L3-C1  | g        |           0.147 |                8965.87 |       12520.8  |      111.534  |            79.8672 | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  5 | M470L3-C1  | g        |           0.147 |                6600.87 |       11734.3  |      151.495  |            85.2199 | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  6 | M505L3-C1  | g        |           0.147 |                3993.4  |       10164.2  |      250.413  |            98.3848 | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  7 | M530L3-C1  | g        |           0.147 |                3540.21 |        9227.9  |      282.469  |           108.367  | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  8 | M590L3-C1  | r        |           0.139 |                1941.87 |        9145.49 |      514.967  |           109.343  | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   |  9 | M617L3-C1  | r        |           0.139 |                8078.68 |        8362.59 |      123.783  |           119.58   | False  |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 10 | M625L3-C1  | r        |           0.139 |                9715.54 |        8149.88 |      102.928  |           122.701  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 11 | M660L4-C1  | r        |           0.139 |               15923    |        7308.42 |       62.8023 |           136.829  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 12 | M730L4-C1  | i        |           0.127 |                7055.02 |        6626.32 |      141.743  |           150.913  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 13 | M780L3-C1  | i        |           0.127 |                6454.12 |        5804.02 |      154.94   |           172.294  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 14 | M810L3-C1  | i        |           0.127 |                6462.9  |        5382.06 |      154.729  |           185.803  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 15 | M850L3-C1  | z        |           0.103 |               15919.3  |        4567.98 |       62.8169 |           218.915  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
-   | 16 | M940L3-C1  | y4       |           0.075 |                7524.54 |        3001.28 |      132.898  |           333.192  | True   |
-   +----+------------+----------+-----------------+------------------------+----------------+---------------+--------------------+--------+
+Currently using the QE curve for the e2v detectors (:file:`detector_e2vPrototype.dat`) from the `Baseline Design Throughput <https://docushare.lsst.org/docushare/dsweb/View/Collection-1777>`__ on Docushare.
 
-.. table:: Energetiq
+.. figure:: /_static/detector_e2v_qe.png
+   :name: detector_e2v_qe
+   :target: ../_images/detector_e2v_qe.png
+   :alt: detector_e2v_qe
 
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |    | LED                     | Filter   |   Ph Rate (ph/pix/sec) |   Req. Ph Rate |   Exptime (s) |   Req. Exptime (s) | Pass   |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  0 | energetiq-99xfc@359.5nm | u        |                135.908 |        7278.04 |       7357.94 |           137.4    | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  1 | energetiq-99xfc@478.5nm | g        |                526.756 |       11321.2  |       1898.41 |            88.3302 | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  2 | energetiq-99xfc@621.5nm | r        |                535.776 |        8241.93 |       1866.45 |           121.331  | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  3 | energetiq-99xfc@754.5nm | i        |                540.748 |        6202.97 |       1849.29 |           161.213  | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  4 | energetiq-99xfc@869.5nm | z        |                765.297 |        4365.39 |       1306.68 |           229.075  | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
-   |  5 | energetiq-99xfc@959.5nm | y4       |                222.625 |        2880.52 |       4491.87 |           347.159  | False  |
-   +----+-------------------------+----------+------------------------+----------------+---------------+--------------------+--------+
+   QE for e2v detectors
 
-.. figure:: /_static/laser_snr_plots.png
-   :name: laser_snr_plots
-   :target: ../_images/laser_snr_plots.png
-   :alt: laser_snr_plots
+Readout Overheads
+=================
+Parameters:
+ - ``cam_readout``: readout time for LSSTCam [2 sec.]
+ - ``min_exptime``: The minimum exposure time allowed by the camera [15 sec.] 
+ - ``electrometer_readout``: The readout time for the electrometer [not currently set]
+ - ``spectrograph_readout``: The readout time for the spectrograph [not currently set]
 
-   Ekspla Tunable Laser SNR plots 
+The exposure time overheads are quite simplistically calculated at this time. Essentially, we can only take an exposure no more often than every 15 seconds. Therefore, if we require less than that time to reach the required SNR, the total exposure time is 13 seconds plus an additional 2 seconds of readout time. 
+
+I am not currently calculating the readout time required for the electrometer. This will have to be addressed very soon. 
+
+Exposure Time Calculator
+========================
+
+The exposure time calculator is saved in :file:`rubin_calib_etc.py` and runs given a configuration file, like :file:`calib_etc.yaml`. 
+
+First, photons per pixel are calculated, by taking the following steps:
+
+1. Calculate irradiance from laser + fiber or White LIght source
+
+2. Multiply by the Calibration system throughput 
+
+3. Calculate number of photons hitting telescope
+
+.. math:: \textrm{photon_rate} = Watts \times \frac{\lambda(m)}{(h \cdot c)}
+
+4. Multiply by the telescope, filter and camera efficiency curves
+
+5. Divide total photons detected by total number of pixels
+
+6. Calculate exposure time for required SNR and apply readout overheads 
+
+
+Current Results
+===============
+The results shown below are given when all three mirrors are coated with silver (Ag only) and when M1/M3 are coated with `Al-Ideal` and M2 coated with silver (Al/Ag). With our current estimates, we are meeting all requirements.
+
+LED
+---
+.. figure:: /_static/led_ff_total_tput.png
+   :name: led_ff_total_tput.png
+   :target: ../_images/led_ff_total_tput.png
+   :alt: led_ff_total_tput.png
+
+   Total Transmission for LED Projector
+
+.. figure:: /_static/led_ff_photon_rate.png
+   :name: led_ff_photon_rate.png
+   :target: ../_images/led_ff_photon_rate.png
+   :alt: led_ff_photon_rate.png
+
+   Photon rate for LED
+
+.. table:: Integrated Photon Rate with current ETC, with exposure times given for a total SNR of 1000
+
+   +----+----------+----------------------------------+------------------------------+
+   |    | Filter   |   Integrated Ph Rate (Ag only)   | Exposure time (s)            |  
+   +----+----------+----------------------------------+------------------------------+
+   |  0 | u        | 12439.38                         |  79.5                        |
+   +----+----------+----------------------------------+------------------------------+
+   |  1 | g        | 45580.46                         |  23.9                        |
+   +----+----------+----------------------------------+------------------------------+
+   |  2 | r        | 57927.51                         |   18.7                       |
+   +----+----------+----------------------------------+------------------------------+
+   |  3 | i        | 62808.17                         |  17.8                        |
+   +----+----------+----------------------------------+------------------------------+
+   |  4 | z        | 89436.08                         |   15 (minimum)               |
+   +----+----------+----------------------------------+------------------------------+
+   |  5 | y4       | 22409.14                         | 44.4                         | 
+   +----+----------+----------------------------------+------------------------------+
+
+Tunable Laser
+-------------
+With a SNR=100 at each wavelength, the total time to scan through all filters will be ~6.2 hours.
+
+.. figure:: /_static/laser_ff_total_tput.png
+   :name: laser_ff_total_tput.png
+   :target: ../_images/laser_ff_total_tput.png
+   :alt: laser_ff_total_tput.png
+
+   Total Transmission for Tunable Laser
+
+.. figure:: /_static/laser_ff_photon_rate.png
+   :name: laser_ff_photon_rate.png
+   :target: ../_images/laser_ff_photon_rate.png
+   :alt: laser_ff_photon_rate.png
+
+   Photon rate for Tunable Laser
+
+.. figure:: /_static/laser_ff_totalexptime.png
+   :name: laser_ff_totalexptime.png
+   :target: ../_images/laser_ff_totalexptime.png
+   :alt: laser_ff_totalexptime.png
+
+   Total Exptime for Tunable Laser for all silver
+
+
 
 
 
