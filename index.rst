@@ -262,9 +262,9 @@ Parameters:
 Mirror Reflectance
 ------------------
 Parameters:
- - ``m1``, ``m2``, ``m3``: Reflectance for a mirror coating; options:[``A'Unprotected-Al``,``Protected-Al``,``Protected-Ag``]
+ - ``m1``, ``m2``, ``m3``: Reflectance for a mirror coating; options:[``Unprotected-Al``,``Protected-Al``,``Protected-Ag``]
 
-There are three mirrors [m1, m2, m3] that will be coated with either Al or Ag. The full throughput will be the combination of the three mirrors, whether all have the same coating or different. The curves we are using come from a document sent directly from Tomislav Vicuna, called `Final procAg-ProcAl_bareAl.xlsx`. 
+There are three mirrors [m1, m2, m3] that will be coated with either Al or Ag. The full throughput will be the combination of the three mirrors, whether all have the same coating or different. The curves we are using come from a document sent directly from Tomislav Vicuna, called :file:`Final procAg-ProcAl_bareAl.xlsx`. 
 
 Currently, the understanding is that all three mirrors will be coated in Protected Silver.
 
