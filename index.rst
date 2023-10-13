@@ -325,6 +325,8 @@ I am not currently calculating the readout time required for the electrometer. T
 Exposure Time Calculator
 ========================
 
+The code for the ETC is currently being developed in https://github.com/lsst-sitcom/notebooks_parfa30/tree/main/python/lsst/sitcom/parfa30/exposure_time_calculator.
+
 The exposure time calculator is saved in :file:`rubin_calib_etc.py` and runs given a configuration file, like :file:`calib_etc.yaml`. 
 
 First, photons per pixel are calculated, by taking the following steps:
@@ -346,7 +348,7 @@ First, photons per pixel are calculated, by taking the following steps:
 
 Current Results
 ===============
-The results shown below are given when all three mirrors are coated with silver (Ag only) and when M1/M3 are coated with `Al-Ideal` and M2 coated with silver (Al/Ag). With our current estimates, we are meeting all requirements.
+The results shown below are given when all three mirrors are coated with silver (Ag only). With our current estimates, we are meeting requirements with the LED projector. With the Monochromatic light source, we are limited by the throughput in the u-band. These results were generated with the calibration files :file:`led_ff_calib_etc_10122023.yaml` and :file:`laser_ff_calib_etc_10122023.yaml`.
 
 LED
 ---
